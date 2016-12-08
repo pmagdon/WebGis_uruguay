@@ -2,7 +2,22 @@ library(shiny)
 library(leaflet)
 library(RPostgreSQL)
 library(RColorBrewer)
-load('X:/FE_016_Uruguay/final/final_2016-12-04/webgis/GIS_webapp/data/ifn_data.R')
+driver <- dbDriver("PostgreSQL")
+connection <- dbConnect(driver, host="localhost", dbname="calc", user="calc", password="calc", port=5432)
+
+sql='SELECT parcela.parcela_id as id,
+SUM(result.arbol_cantidad) as stems,
+SUM(result.arbol_area_basal) as ba,
+SUM(result.arbol_volumen_total) as vol,
+parcela.pm_coord_x as lon,
+parcela.pm_coord_y as lat
+FROM ifn_uruguay_v8._arbol_plot_agg as result,
+ifn_uruguay_v8.parcela as parcela
+WHERE result.parcela_id_ = parcela.parcela_id_
+GROUP BY parcela.parcela_id,lon,lat;'
+plots<-dbGetQuery(connection,sql)
+dbDisconnect(connection)
+
 plots<-plots[complete.cases(plots),]
 
 
